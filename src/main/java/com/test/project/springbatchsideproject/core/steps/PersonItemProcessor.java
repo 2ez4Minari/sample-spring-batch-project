@@ -1,7 +1,6 @@
 package com.test.project.springbatchsideproject.core.steps;
 
 import com.test.project.springbatchsideproject.core.model.Person;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;;
