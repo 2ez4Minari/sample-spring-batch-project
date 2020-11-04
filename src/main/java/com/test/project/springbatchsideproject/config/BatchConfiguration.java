@@ -33,6 +33,12 @@ public class BatchConfiguration {
     @Autowired
     public StepBuilderFactory stepBuilderFactory;
 
+    @Autowired
+    private PersonItemReader personItemReader;
+
+    @Autowired
+    private PersonItemWriter personItemWriter;
+
 
     @Bean
     public FlatFileItemReader<Person> reader() {
