@@ -13,13 +13,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
 
-import static com.test.project.springbatchsideproject.config.PersonBatchConfiguration.PERSON_JOB;
+import static com.test.project.springbatchsideproject.config.CustomerBatchConfiguration.CUSTOMER_JOB;
 
 @RestController
-@RequestMapping("/person")
-public class PersonController {
+@RequestMapping("/customer")
+public class CustomerController {
 
-    @Qualifier(PERSON_JOB)
+    @Qualifier(CUSTOMER_JOB)
     @Autowired
     Job job;
 

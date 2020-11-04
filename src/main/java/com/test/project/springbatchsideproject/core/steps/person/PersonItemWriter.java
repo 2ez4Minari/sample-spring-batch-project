@@ -1,4 +1,4 @@
-package com.test.project.springbatchsideproject.core.steps;
+package com.test.project.springbatchsideproject.core.steps.person;
 
 import com.test.project.springbatchsideproject.core.model.Person;
 import org.springframework.batch.item.ItemWriter;

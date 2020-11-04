@@ -1,9 +1,9 @@
 package com.test.project.springbatchsideproject.config;
 
 import com.test.project.springbatchsideproject.core.model.Person;
-import com.test.project.springbatchsideproject.core.steps.PersonItemProcessor;
-import com.test.project.springbatchsideproject.core.steps.PersonItemReader;
-import com.test.project.springbatchsideproject.core.steps.PersonItemWriter;
+import com.test.project.springbatchsideproject.core.steps.person.PersonItemProcessor;
+import com.test.project.springbatchsideproject.core.steps.person.PersonItemReader;
+import com.test.project.springbatchsideproject.core.steps.person.PersonItemWriter;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -17,6 +17,7 @@ import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -25,7 +26,15 @@ import javax.sql.DataSource;
 
 @Configuration
 @EnableBatchProcessing
-public class BatchConfiguration {
+public class PersonBatchConfiguration {
+
+    public final static String PERSON_JOB_NAME = "importPersonJob";
+    public final static String PERSON_STEP_NAME = "importPersonStep";
+
+    public final static String PERSON_JOB = "PERSON_JOB";
+    public final static String PERSON_STEP = "PERSON_JOB";
+
+    public final static String PERSON_WRITER = "PERSON_WRITER";
 
     @Autowired
     public JobBuilderFactory jobBuilderFactory;
@@ -58,7 +67,7 @@ public class BatchConfiguration {
         return new PersonItemProcessor();
     }
 
-    @Bean
+    @Bean(PERSON_WRITER)
     public JdbcBatchItemWriter<Person> writer(DataSource dataSource) {
         return new JdbcBatchItemWriterBuilder<Person>()
                 .itemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<>())
@@ -68,7 +77,8 @@ public class BatchConfiguration {
     }
 
     @Bean
-    public Job importUserJob(JobCompletionNotificationListener listener, Step step1) {
+    @Qualifier(PERSON_JOB)
+    public Job importUserJob(PersonJobCompletionNotificationListener listener, Step step1) {
         return jobBuilderFactory.get("importUserJob")
                 .incrementer(new RunIdIncrementer())
                 .listener(listener)
@@ -78,10 +88,10 @@ public class BatchConfiguration {
     }
 
     @Bean
-    public Step step1(JdbcBatchItemWriter<Person> writer) {
+    public Step step1(@Qualifier(PERSON_WRITER) JdbcBatchItemWriter<Person> writer, PersonItemReader personItemReader) {
         return stepBuilderFactory.get("step1")
                 .<Person, Person> chunk(10)
-                .reader(reader())
+                .reader(personItemReader)
                 .processor(processor())
                 .writer(writer)
                 .build();
