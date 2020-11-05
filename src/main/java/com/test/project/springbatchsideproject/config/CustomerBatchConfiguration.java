@@ -1,7 +1,7 @@
 package com.test.project.springbatchsideproject.config;
 
 import com.test.project.springbatchsideproject.core.model.Customer;
-import com.test.project.springbatchsideproject.core.steps.customer.CustomerFileItemReader;
+import com.test.project.springbatchsideproject.core.steps.customer.CustomerDBItemReader;
 import com.test.project.springbatchsideproject.core.steps.customer.CustomerItemReader;
 import com.test.project.springbatchsideproject.core.steps.customer.CustomerItemWriter;
 import com.test.project.springbatchsideproject.infra.CustomerEntity;
@@ -15,9 +15,7 @@ import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.batch.item.data.builder.RepositoryItemReaderBuilder;
 import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
-import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
-import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.batch.item.support.ListItemReader;
 import org.springframework.batch.item.support.PassThroughItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +25,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Sort;
 
-import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.sql.Date;
 import java.time.LocalDate;
@@ -74,7 +71,7 @@ public class CustomerBatchConfiguration {
     }
 
     @Bean(CUSTOMER_STEP)
-    public Step importCustomerStep(@Qualifier(CUSTOMER_WRITER) JdbcBatchItemWriter<Customer> writer, RepositoryItemReader<CustomerEntity> repositoryReader) {
+    public Step importCustomerStep(@Qualifier(CUSTOMER_WRITER) JdbcBatchItemWriter<Customer> writer, @Qualifier("ConcreteReader") RepositoryItemReader<CustomerEntity> repositoryReader) {
         return stepBuilderFactory.get(CUSTOMER_STEP_NAME)
                 .<CustomerEntity, CustomerEntity> chunk(10)
                 .reader(repositoryReader)
@@ -107,6 +104,14 @@ public class CustomerBatchConfiguration {
         log.info("CustomerEntityList: {}", customerEntityList.toString());
         System.out.println(customerEntityList);
         return new ListItemReader<>(customerEntityList);
+    }
+
+    @Bean("ConcreteReader")
+    @StepScope
+    public RepositoryItemReader<CustomerEntity> repositoryReader(CustomerRepository customerRepository, @Value("#{jobParameters['dateToday']}") Date dateToday) {
+        System.out.println("Concrete Reader!");
+        System.out.println(dateToday);
+        return new CustomerDBItemReader(customerRepository, dateToday);
     }
 
     @Bean
