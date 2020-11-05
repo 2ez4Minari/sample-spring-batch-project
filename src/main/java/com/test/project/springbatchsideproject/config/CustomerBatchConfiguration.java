@@ -1,25 +1,41 @@
 package com.test.project.springbatchsideproject.config;
 
 import com.test.project.springbatchsideproject.core.model.Customer;
-import com.test.project.springbatchsideproject.core.model.Person;
+import com.test.project.springbatchsideproject.core.steps.customer.CustomerFileItemReader;
 import com.test.project.springbatchsideproject.core.steps.customer.CustomerItemReader;
+import com.test.project.springbatchsideproject.core.steps.customer.CustomerItemWriter;
+import com.test.project.springbatchsideproject.infra.CustomerEntity;
+import com.test.project.springbatchsideproject.infra.repository.CustomerRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.*;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.item.data.RepositoryItemReader;
+import org.springframework.batch.item.data.builder.RepositoryItemReaderBuilder;
 import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
+import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JdbcBatchItemWriterBuilder;
+import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
+import org.springframework.batch.item.support.ListItemReader;
 import org.springframework.batch.item.support.PassThroughItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.Sort;
 
+import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 
+@Slf4j
 @Configuration
 @EnableBatchProcessing
 public class CustomerBatchConfiguration {
@@ -38,29 +54,39 @@ public class CustomerBatchConfiguration {
     @Autowired
     public StepBuilderFactory stepBuilderFactory;
 
-    @Bean
-    @Qualifier(CUSTOMER_JOB)
+    @Autowired
+    private CustomerItemWriter customerItemWriter;
+
+    @Autowired
+    private CustomerItemReader customerItemReader;
+
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    @Bean(CUSTOMER_JOB)
     public Job importCustomerJob(CustomerJobCompletionNotificationListener listener, @Qualifier(CUSTOMER_STEP) Step importCustomerStep) {
         return jobBuilderFactory.get(CUSTOMER_JOB_NAME)
                 .incrementer(new RunIdIncrementer())
-                .listener(listener)
+//                .listener(listener)
                 .flow(importCustomerStep)
                 .end()
                 .build();
     }
 
     @Bean(CUSTOMER_STEP)
-    public Step importCustomerStep(@Qualifier(CUSTOMER_WRITER) JdbcBatchItemWriter<Customer> writer, CustomerItemReader customerItemReader) {
+    public Step importCustomerStep(@Qualifier(CUSTOMER_WRITER) JdbcBatchItemWriter<Customer> writer, RepositoryItemReader<CustomerEntity> repositoryReader) {
         return stepBuilderFactory.get(CUSTOMER_STEP_NAME)
-                .<Customer, Customer> chunk(10)
-                .reader(customerItemReader)
+                .<CustomerEntity, CustomerEntity> chunk(10)
+                .reader(repositoryReader)
                 .processor(process())
-                .writer(writer)
+                .writer(customerItemWriter)
                 .build();
     }
 
     @Bean
-    public PassThroughItemProcessor<Customer> process() {
+    @StepScope
+    public PassThroughItemProcessor<CustomerEntity> process() {
+        log.info("Started Pass Through Processor");
         return new PassThroughItemProcessor<>();
     }
 
@@ -71,5 +97,33 @@ public class CustomerBatchConfiguration {
                 .sql("INSERT INTO customer (NAME, AGE, ADDRESS) VALUES (:name, :age, :address)")
                 .dataSource(dataSource)
                 .build();
+    }
+
+    @Bean("SimpleReader")
+    @StepScope
+    public ListItemReader<CustomerEntity> simpleReader() {
+        log.info("Started Simple Reader");
+        List<CustomerEntity> customerEntityList = customerRepository.findAllUsingNativeQuery("HK");
+        log.info("CustomerEntityList: {}", customerEntityList.toString());
+        System.out.println(customerEntityList);
+        return new ListItemReader<>(customerEntityList);
+    }
+
+    @Bean
+    @StepScope
+    public RepositoryItemReader<CustomerEntity> repositoryReader(@Value("#{jobParameters['dateToday']}") Date dateToday) {
+        log.info("Started Repository Reader");
+        System.out.println(Date.valueOf(LocalDate.now()));
+        HashMap sorts = new HashMap<>();
+        sorts.put("customerID", Sort.Direction.ASC);
+        RepositoryItemReaderBuilder repositoryItemReaderBuilder = new RepositoryItemReaderBuilder();
+        repositoryItemReaderBuilder.name("CustomerRepositoryReader");
+        repositoryItemReaderBuilder.repository(customerRepository);
+        repositoryItemReaderBuilder.methodName("findAllByAccountOpeningDate");
+        repositoryItemReaderBuilder.arguments(Arrays.asList(dateToday));
+        repositoryItemReaderBuilder.sorts(sorts);
+        repositoryItemReaderBuilder.pageSize(2);
+        return repositoryItemReaderBuilder.build();
+
     }
 }

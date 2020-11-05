@@ -7,10 +7,12 @@ CREATE TABLE people  (
 );
 
 
-DROP TABLE IF EXISTS customer;
+-- DROP TABLE IF EXISTS customer;
 CREATE TABLE customer  (
                          CUSTOMER_ID BIGINT IDENTITY NOT NULL PRIMARY KEY,
                          NAME VARCHAR(20),
                          AGE int(10),
-                         ADDRESS VARCHAR(20)
+                         ADDRESS VARCHAR(20),
+                         ACCOUNT_OPENING_DATE DATE NOT NULL
 );
+

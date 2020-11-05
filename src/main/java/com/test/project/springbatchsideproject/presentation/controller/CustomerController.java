@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Date;
+
+import java.sql.Date;
+import java.time.LocalDate;
 
 import static com.test.project.springbatchsideproject.config.CustomerBatchConfiguration.CUSTOMER_JOB;
 
@@ -28,12 +30,14 @@ public class CustomerController {
 
     @GetMapping("/write")
     void movePersonFromCSVToDB() throws JobParametersInvalidException, JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException {
-        JobExecution jobExecution = jobLauncher.run(job, createJobParameter());
+        Date dateToday = Date.valueOf(LocalDate.now());
+        JobExecution jobExecution = jobLauncher.run(job, createJobParameter(dateToday));
     }
 
-    private JobParameters createJobParameter() {
+    private JobParameters createJobParameter(Date dateToday) {
         JobParametersBuilder jobParametersBuilder = new JobParametersBuilder();
-        jobParametersBuilder.addDate("Date", new Date());
+        jobParametersBuilder.addDate("dateToday", dateToday);
+        jobParametersBuilder.addString("name", "Hi");
         return jobParametersBuilder.toJobParameters();
     }
 }
