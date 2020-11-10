@@ -1,6 +1,6 @@
 package com.test.project.springbatchsideproject.infra.repository;
 
-import com.test.project.springbatchsideproject.infra.CustomerEntity;
+import com.test.project.springbatchsideproject.infra.entity.CustomerEntity;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

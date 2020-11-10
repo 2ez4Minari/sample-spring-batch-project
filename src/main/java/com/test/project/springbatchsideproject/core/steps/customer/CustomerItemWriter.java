@@ -1,6 +1,6 @@
 package com.test.project.springbatchsideproject.core.steps.customer;
 
-import com.test.project.springbatchsideproject.infra.CustomerEntity;
+import com.test.project.springbatchsideproject.infra.entity.CustomerEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.stereotype.Component;

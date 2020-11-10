@@ -4,7 +4,7 @@ import com.test.project.springbatchsideproject.core.model.Customer;
 import com.test.project.springbatchsideproject.core.steps.customer.CustomerDBItemReader;
 import com.test.project.springbatchsideproject.core.steps.customer.CustomerItemReader;
 import com.test.project.springbatchsideproject.core.steps.customer.CustomerItemWriter;
-import com.test.project.springbatchsideproject.infra.CustomerEntity;
+import com.test.project.springbatchsideproject.infra.entity.CustomerEntity;
 import com.test.project.springbatchsideproject.infra.repository.CustomerRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;

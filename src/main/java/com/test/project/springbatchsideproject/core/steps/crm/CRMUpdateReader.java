@@ -1,9 +1,9 @@
-package com.test.project.springbatchsideproject.core.steps.customer;
+package com.test.project.springbatchsideproject.core.steps.crm;
 
 
 import com.google.common.collect.ImmutableMap;
-import com.test.project.springbatchsideproject.infra.entity.CustomerEntity;
-import com.test.project.springbatchsideproject.infra.repository.CustomerRepository;
+import com.test.project.springbatchsideproject.infra.entity.BalanceAndIndexEntity;
+import com.test.project.springbatchsideproject.infra.repository.BalanceAndIndexRepository;
 import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.data.domain.Sort;
 
@@ -11,29 +11,30 @@ import java.sql.Date;
 import java.util.Arrays;
 import java.util.Map;
 
-public class CustomerDBItemReader extends RepositoryItemReader<CustomerEntity> {
+public class CRMUpdateReader extends RepositoryItemReader<BalanceAndIndexEntity> {
 
     private static final String QUERY_METHOD = "findAllByAccountOpeningDate";
-    private static final int ITEMS_PER_PAGE = 5;
-    private static final String SORT_COLUMN = "customerID";
+    private static final int ITEMS_PER_PAGE = 10;
+    private static final String SORT_COLUMN = "id";
     private static final Map<String, Sort.Direction> sortOrder = ImmutableMap.of(SORT_COLUMN, Sort.Direction.ASC);
 
-    private final CustomerRepository customerRepository;
+    private final BalanceAndIndexRepository balanceAndIndexRepository;
     private Date dateToday;
 
-    public CustomerDBItemReader(CustomerRepository customerRepository, Date dateToday) {
-        this.customerRepository = customerRepository;
+    public CRMUpdateReader(BalanceAndIndexRepository balanceAndIndexRepository, Date dateToday) {
+        this.balanceAndIndexRepository = balanceAndIndexRepository;
         this.dateToday = dateToday;
     }
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        setRepository(customerRepository);
+        setRepository(balanceAndIndexRepository);
         setMethodName(QUERY_METHOD);
         setPageSize(ITEMS_PER_PAGE);
         setSort(sortOrder);
         setArguments(Arrays.asList(dateToday));
         super.afterPropertiesSet();
     }
-
 }
+
+
