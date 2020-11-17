@@ -4,6 +4,7 @@ import com.test.project.springbatchsideproject.core.model.Person;
 import com.test.project.springbatchsideproject.core.steps.person.PersonItemProcessor;
 import com.test.project.springbatchsideproject.core.steps.person.PersonItemReader;
 import com.test.project.springbatchsideproject.core.steps.person.PersonItemWriter;
+import com.test.project.springbatchsideproject.core.steps.person.PersonListItemReader;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -48,6 +49,9 @@ public class PersonBatchConfiguration {
     @Autowired
     private PersonItemWriter personItemWriter;
 
+    @Autowired
+    private PersonListItemReader personListItemReader;
+
 
     @Bean
     public FlatFileItemReader<Person> reader() {
@@ -88,12 +92,12 @@ public class PersonBatchConfiguration {
     }
 
     @Bean
-    public Step step1(@Qualifier(PERSON_WRITER) JdbcBatchItemWriter<Person> writer, PersonItemReader personItemReader) {
+    public Step step1(@Qualifier(PERSON_WRITER) JdbcBatchItemWriter<Person> writer) {
         return stepBuilderFactory.get("step1")
                 .<Person, Person> chunk(10)
-                .reader(personItemReader)
-                .processor(processor())
-                .writer(writer)
+                .reader(personListItemReader)
+//                .processor(processor())
+                .writer(personItemWriter)
                 .build();
     }
 }
